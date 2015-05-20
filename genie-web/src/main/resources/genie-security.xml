@@ -5,7 +5,11 @@
              xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		        http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
 
-    <!--<http pattern="/**" security="none"/>-->
+    <http pattern="/bootstrap/**" security="none"/>
+    <http pattern="/css/**" security="none"/>
+    <http pattern="/images/**" security="none"/>
+    <http pattern="/img/**" security="none"/>
+    <http pattern="/vendor/**" security="none"/>
 
     <http>
         <intercept-url pattern="/**" access="hasRole('USER')"/>
@@ -30,7 +34,8 @@
             <authentication-provider>
                 <!--<password-encoder ref="bcryptEncoder"/>-->
                 <user-service>
-                    <user name="tgianos" password="password" authorities="ROLE_USER, ROLE_ADMIN"/>
+                    <user name="genieAdmin" password="adminPassword" authorities="ROLE_USER, ROLE_ADMIN"/>
+                    <user name="genieUser" password="userPassword" authorities="ROLE_USER"/>
                 </user-service>
             </authentication-provider>
         </authentication-manager>

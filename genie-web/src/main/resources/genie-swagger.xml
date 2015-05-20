@@ -16,7 +16,7 @@
         <property name="licenseUrl" value="http://www.apache.org/licenses/LICENSE-2.0"/>
         <property name="version" value="@project.version@"/>
         <property name="schemes" value="http"/>
-        <property name="host" value="localhost:7001"/>
+        <property name="host" value="localhost:8080"/>
         <property name="basePath" value="/genie"/>
         <property name="resourcePackage" value="com.netflix.genie.server.resources"/>
         <property name="scan" value="true"/>

@@ -21,8 +21,9 @@
             http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
     <context:component-scan base-package="com.netflix.genie"/>
-    
+
     <!-- Broken up context for clarity of purpose" -->
-    <import resource="classpath:genie-jpa.xml"/>
+    <import resource="genie-jpa.xml"/>
+    <import resource="genie-security.xml"/>
     <import resource="genie-swagger.xml"/>
 </beans>

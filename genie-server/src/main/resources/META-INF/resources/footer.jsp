@@ -16,9 +16,11 @@
 
 -->
 <%@ page import="com.netflix.config.ConfigurationManager" %>
+<%@ page import="org.springframework.security.core.context.SecurityContextHolder" %>
 <%@ page language="java" pageEncoding="UTF-8" session="false"%>
 <!DOCTYPE html>
 <footer class="site-footer">
-    <p><%= ConfigurationManager.getConfigInstance().getString("com.netflix.genie.version")%>
+    <p><%= SecurityContextHolder.getContext().getAuthentication()%>
+        <%= ConfigurationManager.getConfigInstance().getString("com.netflix.genie.version")%>
         <%= ConfigurationManager.getConfigInstance().getString("com.netflix.genie.environment")%></p>
 </footer>

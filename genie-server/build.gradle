@@ -33,7 +33,10 @@ dependencies {
 
     // Spring Libs
     compile ("org.springframework.data:spring-data-jpa:${spring_data_jpa_version}")
-    compile ("org.springframework:spring-web:${springframework_version}")
+    compile ("org.springframework.security:spring-security-config:${spring_security_version}")
+    compile ("org.springframework.security.extensions:spring-security-saml2-core:${spring_security_saml_version}")
+    compile ("org.springframework.security:spring-security-web:${spring_security_version}")
+    compile ("org.springframework:spring-web:${spring_framework_version}")
     compile ("com.google.inject.extensions:guice-spring:${guice_version}")
 
     // Swagger Libs
@@ -76,7 +79,7 @@ dependencies {
      * Test Dependencies
      *******************************/
 
-    testCompile ("org.springframework:spring-test:${springframework_version}")
+    testCompile ("org.springframework:spring-test:${spring_framework_version}")
     testCompile ("org.dbunit:dbunit:${dbunit_version}")
     testCompile ("com.github.springtestdbunit:spring-test-dbunit:${spring_test_dbunit_version}")
 }

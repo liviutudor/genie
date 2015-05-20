@@ -4,11 +4,13 @@ define([
     'knockout',
     'knockout.mapping',
     'pager',
+    'moment',
+    'momentDurationFormat',
     'jqdatatables',
     'dtbootstrap',
     'loadKoTemplate!../templates/job-search-form.html',
     'loadKoTemplate!../templates/job-search-results.html'
-], function($, _, ko, mapping, pager) {
+], function($, _, ko, mapping, pager, moment) {
     ko.mapping = mapping;
 
     function Job(json) {
@@ -41,8 +43,9 @@ define([
         self.updated       = ko.observable();
         self.created = ko.observable();
         self.user         = ko.observable();
-        self.outputURILink = '';
-        self.idLink = '';
+        //self.outputURILink = '';
+        //self.idLink = '';
+        //self.startTimeFormatted = '';
 
         ko.mapping.fromJS(json, {}, self);
 
@@ -52,31 +55,6 @@ define([
                 return self.name().substring(0,20) + '...' + self.name().substring(nameLength-8);
             }
             return self.name();
-        }, self);
-
-        self.finishTimeFormatted = ko.computed(function() {
-            if (self.finished() > 0) {
-                var myDate = new Date(parseInt(self.finished()));
-                return myDate.toUTCString();
-            }
-            return '';
-        }, self);
-
-        self.startTimeFormatted = ko.computed(function() {
-            //if (self.startTime() > 0) {
-            if (self.created() > 0) { 	
-                var myDate = new Date(parseInt(self.created()));
-                return myDate.toUTCString();
-            }
-            return '';
-        }, self);
-
-        self.updateTimeFormatted = ko.computed(function() {
-            if (self.updated() > 0) {
-                var myDate = new Date(parseInt(self.updated()));
-                return myDate.toUTCString();
-            }
-            return '';
         }, self);
 
         self.statusClass = ko.computed(function() {
@@ -181,6 +159,20 @@ define([
                             target: "_blank"
                         }).append($("<img/>", {src: '../images/json_logo.png', class: 'json-icon'}))).html();
 
+                        var startDt = new Date(jobObj.created);
+                        jobObj.startTimeFormatted = moment(startDt).format('MM/DD/YYYY HH:mm:ss');
+
+                        var endDt = new Date(jobObj.finished);
+
+                        // TODO checking against PST Epoch time. This should be changed once we fix the server side.
+                        if (jobObj.status != 'RUNNING') {
+                            jobObj.endTimeFormatted = moment (endDt).format('MM/DD/YYYY HH:mm:ss');
+                            jobObj.diffTimeFormatted = moment.duration(moment(endDt).diff(moment(startDt))).format("d[d] hh:mm:ss");
+                        } else {
+                            jobObj.endTimeFormatted = '';
+                            jobObj.diffTimeFormatted ='';
+                        }
+
                         self.searchResults.push(new Job(jobObj));
                     });
                 } else {
@@ -195,18 +187,35 @@ define([
                 $("#jobDataTable").DataTable ( {
                         data: self.searchResults(),
                         "aaSorting": [],
+                        "oLanguage": {
+                            "sSearch": "Filter Results: "
+                        },
                         columns: [
-                            { data: 'id' },
-                            { data: 'name' },
-                            { data: 'commandName', className: "dt-center"},
-                            { data: 'user', className: "dt-center"},
-                            { data: 'executionClusterName', className: "dt-center"},
-                            { data: 'created', className: "dt-center"},
-                            { data: 'updated', className: "dt-center"},
-                            { data: 'finished', className: "dt-center"},
-                            { data: 'idLink', className: "dt-center"},
-                            { data: 'rawLink', className: "dt-center"}
-                        ]
+                            { title: 'Id', data: 'id' },
+                            { title: 'Name', data: 'name' },
+                            { title: 'Command', data: 'commandName', className: "dt-center"},
+                            { title: 'User', data: 'user', className: "dt-center"},
+                            { title: 'Cluster', data: 'executionClusterName', className: "dt-center"},
+                            { title: 'Start Time (UTC)', data: 'startTimeFormatted', className: "dt-center"},
+                            { title: 'Finish Time', data: 'endTimeFormatted', className: "dt-center"},
+                            { title: 'RunTime', data: 'diffTimeFormatted', className: "dt-center"},
+                            { title: 'Output', data: 'idLink', className: "dt-center"},
+                            { title: 'JSON', data: 'rawLink', className: "dt-center"},
+                            { title: 'Status', name: 'status', data: 'status', className: "dt-center"},
+                        ],
+                        // TODO use names of datatable columns to change class instead of static index 10
+                        "createdRow": function ( row, data, index ) {
+                            if (data.status() == 'SUCCEEDED') {
+                                $('td', row).eq(10).addClass('text-success');
+                            } else if (data.status() == 'FAILED') {
+                                $('td', row).eq(10).addClass('text-error');
+                            } else if (data.status() == 'KILLED') {
+                                $('td', row).eq(10).addClass('text-warning');
+                            }
+                            else {
+                                $('td', row).eq(10).addClass('text-muted');
+                            }
+                        }
                     }
                 )
             }).fail(function(jqXHR, textStatus, errorThrown) {

@@ -32,6 +32,7 @@ limitations under the License.
     <link rel="stylesheet" href="css/select2-bootstrap.css"/>
     <link rel="stylesheet" href="css/jquery.dataTables.min.css"/>
     <link rel="stylesheet" href="css/dataTables.bootstrap.css"/>
+    <link rel="stylesheet" href="bootstrap/css/bootstrap-theme.min.css"/>
     <link rel="stylesheet" href="css/genie.css"/>
     <script src="vendor/js/require.js"></script>
     <script>
@@ -65,10 +66,18 @@ limitations under the License.
 </head>
 <body>
 <div class="navbar navbar-inverse navbar-fixed-top">
-    <div class="navbar-inner site-header-<%=env%>">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">GENIE</a>
+    </div>
+    <div class="navbar-collapse collapse site-header-<%=env%>">
         <div class="container">
-            <a class="brand" href="#">GENIE</a>
-            <ul class="nav" role="navigation">
+            <ul class="nav navbar-nav" role="navigation">
                 <li data-bind="css: {active: $__page__.find('job').isVisible}"><a href="#job/search">Jobs</a></li>
                 <li data-bind="css: {active: $__page__.find('cluster').isVisible}"><a
                         href="#cluster/search">Clusters</a></li>

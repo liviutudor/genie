@@ -25,6 +25,10 @@ define([
         self.clusterType = ko.observable();
         self.configs = ko.observableArray();
         self.tags = ko.observableArray();
+        self.commands = ko.observableArray();
+        self.createTimeFormatted = ko.observable();
+        self.updateTimeFormatted = ko.observable();
+        self.formattedTags = ko.observable();
 
         ko.mapping.fromJS(json, {}, self);
         self.originalStatus = self.status();
@@ -76,7 +80,8 @@ define([
         self.selectedTags = ko.observableArray();
         self.clusterOrderByFields = ko.observableArray(['user','started','created','id','name','status']);
         self.clusterOrderBySelectedFields = ko.observableArray();
-        
+        self.displayForm = ko.observable(true);
+
         self.runningClusterCount = ko.computed(function() {
             return _.reduce(self.runningClusters(), function(sum, obj, index) { return sum + obj.count; }, 0);
         }, self);
@@ -117,6 +122,14 @@ define([
             });
         };
 
+        self.showForm = function() {
+            self.displayForm(true);
+        }
+
+        self.hideForm = function() {
+            self.displayForm(false);
+        }
+
         self.search = function() {
             var d = new Date();
             self.searchResults([]);
@@ -145,18 +158,19 @@ define([
             }).done(function(data) {
             	self.searchResults([]);
                 self.status('results');
+                self.displayForm(false);
                 if (data instanceof Array) {
                     _.each(data, function(clusterObj, index) {
 
                         clusterObj.idLink  = $("<div />").append($("<a />", {
                             href : '/#cluster/details/'+clusterObj.id,
                             target: "_blank"
-                        }).append($("<img/>", {src: '../images/genie.gif', class: 'genie-icon'}))).html();
+                        }).append($("<img/>", {src: '../images/folder.svg', class: 'open-icon'}))).html();
 
                         clusterObj.rawLink  = $("<div />").append($("<a />", {
                             href : "genie/v2/config/clusters/" + clusterObj.id,
                             target: "_blank"
-                        }).append($("<img/>", {src: '../images/json_logo.png', class: 'json-icon'}))).html();
+                        }).append($("<img/>", {src: '../images/genie.gif', class: 'genie-icon'}))).html();
 
                         var createdDt = new Date(clusterObj.created);
                         clusterObj.createTimeFormatted = moment(createdDt).format('MM/DD/YYYY HH:mm:ss');
@@ -218,9 +232,27 @@ define([
                     type: 'GET',
                     headers: {'Accept':'application/json'},
                     url:  'genie/v2/config/clusters/'+clusterId
-                }).done(function(data) {
-                	console.log(data);
-                    self.current(new Cluster(data));
+                }).done(function(clusterObj) {
+                	console.log(clusterObj);
+
+                    var createdDt = new Date(clusterObj.created);
+                    clusterObj.createTimeFormatted = moment(createdDt).format('MM/DD/YYYY HH:mm:ss');
+
+                    var updatedDt = new Date(clusterObj.updated);
+                    clusterObj.updateTimeFormatted = moment(updatedDt).format('MM/DD/YYYY HH:mm:ss');
+
+                    clusterObj.formattedTags = ck=clusterObj.tags.join("<br />");
+
+                    $.ajax({
+                        type: 'GET',
+                        headers: {'Accept':'application/json'},
+                        url:  'genie/v2/config/clusters/'+clusterId+'/commands?status=ACTIVE'
+                    }).done(function(commands) {
+                        console.log(commands);
+                        clusterObj.commands = commands;
+                        self.current(new Cluster(clusterObj));
+                    });
+                    //self.current(new Cluster(data));
                 });
             } else {
                 self.current(new Cluster());

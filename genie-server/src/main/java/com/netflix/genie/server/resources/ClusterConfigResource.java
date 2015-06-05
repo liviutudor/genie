@@ -20,6 +20,7 @@ package com.netflix.genie.server.resources;
 import com.netflix.genie.common.exceptions.GenieException;
 import com.netflix.genie.common.model.Cluster;
 import com.netflix.genie.common.model.ClusterStatus;
+import com.netflix.genie.common.model.CommandStatus;
 import com.netflix.genie.common.model.Command;
 import com.netflix.genie.server.services.ClusterConfigService;
 import com.wordnik.swagger.annotations.Api;
@@ -59,6 +60,7 @@ import java.util.Set;
  * @author amsharma
  * @author tgianos
  */
+@Named
 @Path("/v2/config/clusters")
 @Api(
         value = "/v2/config/clusters",
@@ -66,8 +68,7 @@ import java.util.Set;
         description = "Manage the available clusters"
 )
 @Produces(MediaType.APPLICATION_JSON)
-@Named
-public class ClusterConfigResource {
+public final class ClusterConfigResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(ClusterConfigResource.class);
 
@@ -269,22 +270,22 @@ public class ClusterConfigResource {
         );
         LOG.info(
                 name
-                + " | "
-                + statuses
-                + " | "
-                + tags
-                + " | "
-                + minUpdateTime
-                + " | "
-                + maxUpdateTime
-                + " | "
-                + page
-                + " | "
-                + limit
-                + " | "
-                + descending
-                + " | "
-                + orderBys
+                        + " | "
+                        + statuses
+                        + " | "
+                        + tags
+                        + " | "
+                        + minUpdateTime
+                        + " | "
+                        + maxUpdateTime
+                        + " | "
+                        + page
+                        + " | "
+                        + limit
+                        + " | "
+                        + descending
+                        + " | "
+                        + orderBys
         );
         //Create this conversion internal in case someone uses lower case by accident?
         Set<ClusterStatus> enumStatuses = null;
@@ -647,10 +648,23 @@ public class ClusterConfigResource {
                     required = true
             )
             @PathParam("id")
-            final String id
+            final String id,
+            @QueryParam("status")
+            final Set<String> statuses
     ) throws GenieException {
-        LOG.info("Called with id " + id);
-        return this.clusterConfigService.getCommandsForCluster(id);
+        LOG.info("Called with id " + id + " status " + statuses);
+
+        Set<CommandStatus> enumStatuses = null;
+        if (!statuses.isEmpty()) {
+            enumStatuses = EnumSet.noneOf(CommandStatus.class);
+            for (final String status : statuses) {
+                if (StringUtils.isNotBlank(status)) {
+                    enumStatuses.add(CommandStatus.parse(status));
+                }
+            }
+        }
+
+        return this.clusterConfigService.getCommandsForCluster(id, enumStatuses);
     }
 
     /**

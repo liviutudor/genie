@@ -39,6 +39,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import javax.inject.Inject;
+import javax.validation.ConstraintViolationException;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -92,10 +94,10 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
                 new Job(
                         user,
                         name,
+                        version,
                         commandArgs,
                         commandCriteria,
-                        clusterCriterias,
-                        version
+                        clusterCriterias
                 )
         );
 
@@ -147,10 +149,10 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
         final Job jobToCreate = new Job(
                 user,
                 name,
+                version,
                 commandArgs,
                 commandCriteria,
-                clusterCriterias,
-                version
+                clusterCriterias
         );
         jobToCreate.setId(id);
 
@@ -204,10 +206,10 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
         final Job jobToCreate = new Job(
                 user,
                 name,
+                version,
                 commandArgs,
                 commandCriteria,
-                clusterCriterias,
-                version
+                clusterCriterias
         );
         jobToCreate.setId(JOB_1_ID);
         this.service.createJob(jobToCreate);
@@ -274,7 +276,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      *
      * @throws GenieException
      */
-    @Test(expected = GeniePreconditionException.class)
+    @Test(expected = ConstraintViolationException.class)
     public void testGetJobNoId() throws GenieException {
         this.service.getJob(null);
     }
@@ -296,6 +298,8 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
     public void testGetJobsById() {
         final List<Job> jobs = this.service.getJobs(
                 JOB_1_ID,
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -324,6 +328,8 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
                 null,
                 null,
                 null,
+                null,
+                null,
                 0,
                 10,
                 true,
@@ -342,6 +348,8 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
                 null,
                 null,
                 "tgianos",
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -369,6 +377,8 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
                 null,
                 null,
                 statuses,
+                null,
+                null,
                 null,
                 null,
                 null,
@@ -404,6 +414,8 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
                 tags,
                 null,
                 null,
+                null,
+                null,
                 0,
                 10,
                 true,
@@ -432,6 +444,8 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
                 tags,
                 null,
                 null,
+                null,
+                null,
                 0,
                 10,
                 true,
@@ -454,6 +468,56 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
                 null,
                 "h2prod",
                 null,
+                null,
+                null,
+                -1,
+                0,
+                true,
+                null
+        );
+        Assert.assertEquals(1, jobs.size());
+        Assert.assertEquals(JOB_1_ID, jobs.get(0).getId());
+    }
+
+    /**
+     * Test the get jobs function.
+     */
+    @Test
+    public void testGetJobsByCommandName() {
+        final List<Job> jobs = this.service.getJobs(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "pig_13_prod",
+                null,
+                -1,
+                0,
+                true,
+                null
+        );
+        Assert.assertEquals(1, jobs.size());
+        Assert.assertEquals(JOB_1_ID, jobs.get(0).getId());
+    }
+
+    /**
+     * Test the get jobs function.
+     */
+    @Test
+    public void testGetJobsByCommandId() {
+        final List<Job> jobs = this.service.getJobs(
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "command1",
                 -1,
                 0,
                 true,
@@ -476,6 +540,8 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
                 null,
                 null,
                 "cluster2",
+                null,
+                null,
                 0,
                 10,
                 true,
@@ -491,7 +557,8 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
     @Test
     public void testGetClustersDescending() {
         //Default to order by Updated
-        final List<Job> jobs = this.service.getJobs(null, null, null, null, null, null, null, 0, 10, true, null);
+        final List<Job> jobs = this.service.getJobs(null, null, null, null, null, null, null, null, null,
+                0, 10, true, null);
         Assert.assertEquals(2, jobs.size());
         Assert.assertEquals(JOB_1_ID, jobs.get(0).getId());
         Assert.assertEquals(JOB_2_ID, jobs.get(1).getId());
@@ -503,7 +570,8 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
     @Test
     public void testGetClustersAscending() {
         //Default to order by Updated
-        final List<Job> jobs = this.service.getJobs(null, null, null, null, null, null, null, 0, 10, false, null);
+        final List<Job> jobs = this.service.getJobs(null, null, null, null, null, null, null, null,
+                null, 0, 10, false, null);
         Assert.assertEquals(2, jobs.size());
         Assert.assertEquals(JOB_2_ID, jobs.get(0).getId());
         Assert.assertEquals(JOB_1_ID, jobs.get(1).getId());
@@ -515,7 +583,8 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
     @Test
     public void testGetClustersOrderBysDefault() {
         //Default to order by Updated
-        final List<Job> jobs = this.service.getJobs(null, null, null, null, null, null, null, 0, 10, true, null);
+        final List<Job> jobs = this.service.getJobs(null, null, null, null, null, null, null, null, null,
+                0, 10, true, null);
         Assert.assertEquals(2, jobs.size());
         Assert.assertEquals(JOB_1_ID, jobs.get(0).getId());
         Assert.assertEquals(JOB_2_ID, jobs.get(1).getId());
@@ -528,7 +597,8 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
     public void testGetClustersOrderBysUpdated() {
         final Set<String> orderBys = new HashSet<>();
         orderBys.add("updated");
-        final List<Job> jobs = this.service.getJobs(null, null, null, null, null, null, null, 0, 10, true, orderBys);
+        final List<Job> jobs = this.service.getJobs(null, null, null, null, null, null, null, null,
+                null, 0, 10, true, orderBys);
         Assert.assertEquals(2, jobs.size());
         Assert.assertEquals(JOB_1_ID, jobs.get(0).getId());
         Assert.assertEquals(JOB_2_ID, jobs.get(1).getId());
@@ -541,7 +611,8 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
     public void testGetClustersOrderBysName() {
         final Set<String> orderBys = new HashSet<>();
         orderBys.add("name");
-        final List<Job> jobs = this.service.getJobs(null, null, null, null, null, null, null, 0, 10, true, orderBys);
+        final List<Job> jobs = this.service.getJobs(null, null, null, null, null, null, null, null, null,
+                0, 10, true, orderBys);
         Assert.assertEquals(2, jobs.size());
         Assert.assertEquals(JOB_2_ID, jobs.get(0).getId());
         Assert.assertEquals(JOB_1_ID, jobs.get(1).getId());
@@ -554,7 +625,8 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
     public void testGetClustersOrderBysInvalidField() {
         final Set<String> orderBys = new HashSet<>();
         orderBys.add("I'mNotAValidField");
-        final List<Job> jobs = this.service.getJobs(null, null, null, null, null, null, null, 0, 10, true, orderBys);
+        final List<Job> jobs = this.service.getJobs(null, null, null, null, null, null, null,
+                null, null, 0, 10, true, orderBys);
         Assert.assertEquals(2, jobs.size());
         Assert.assertEquals(JOB_1_ID, jobs.get(0).getId());
         Assert.assertEquals(JOB_2_ID, jobs.get(1).getId());
@@ -567,7 +639,8 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
     public void testGetClustersOrderBysCollectionField() {
         final Set<String> orderBys = new HashSet<>();
         orderBys.add("tags");
-        final List<Job> jobs = this.service.getJobs(null, null, null, null, null, null, null, 0, 10, true, orderBys);
+        final List<Job> jobs = this.service.getJobs(null, null, null, null, null, null, null, null,
+                null, 0, 10, true, orderBys);
         Assert.assertEquals(2, jobs.size());
         Assert.assertEquals(JOB_1_ID, jobs.get(0).getId());
         Assert.assertEquals(JOB_2_ID, jobs.get(1).getId());
@@ -604,7 +677,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      *
      * @throws GenieException
      */
-    @Test(expected = GeniePreconditionException.class)
+    @Test(expected = ConstraintViolationException.class)
     public void testAddTagsToJobNoId() throws GenieException {
         this.service.addTagsForJob(null, new HashSet<String>());
     }
@@ -614,7 +687,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      *
      * @throws GenieException
      */
-    @Test(expected = GeniePreconditionException.class)
+    @Test(expected = ConstraintViolationException.class)
     public void testAddTagsToJobNoTags() throws GenieException {
         this.service.addTagsForJob(JOB_1_ID, null);
     }
@@ -626,8 +699,9 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      */
     @Test(expected = GenieNotFoundException.class)
     public void testAddTagsForJobNoJob() throws GenieException {
-        this.service.addTagsForJob(UUID.randomUUID().toString(),
-                new HashSet<String>());
+        final Set<String> tags = new HashSet<>();
+        tags.add(UUID.randomUUID().toString());
+        this.service.addTagsForJob(UUID.randomUUID().toString(), tags);
     }
 
     /**
@@ -661,7 +735,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      *
      * @throws GenieException
      */
-    @Test(expected = GeniePreconditionException.class)
+    @Test(expected = ConstraintViolationException.class)
     public void testUpdateTagsForJobNoId() throws GenieException {
         this.service.updateTagsForJob(null, new HashSet<String>());
     }
@@ -673,8 +747,9 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      */
     @Test(expected = GenieNotFoundException.class)
     public void testUpdateTagsForJobNoJob() throws GenieException {
-        this.service.updateTagsForJob(UUID.randomUUID().toString(),
-                new HashSet<String>());
+        final Set<String> tags = new HashSet<>();
+        tags.add(UUID.randomUUID().toString());
+        this.service.updateTagsForJob(UUID.randomUUID().toString(), tags);
     }
 
     /**
@@ -693,7 +768,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      *
      * @throws GenieException
      */
-    @Test(expected = GeniePreconditionException.class)
+    @Test(expected = ConstraintViolationException.class)
     public void testGetTagsForJobNoId() throws GenieException {
         this.service.getTagsForJob(null);
     }
@@ -727,7 +802,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      *
      * @throws GenieException
      */
-    @Test(expected = GeniePreconditionException.class)
+    @Test(expected = ConstraintViolationException.class)
     public void testRemoveAllTagsForJobNoId() throws GenieException {
         this.service.removeAllTagsForJob(null);
     }
@@ -764,15 +839,9 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      *
      * @throws GenieException
      */
-    @Test
-    public void testRemoveTagForJobNullTag()
-            throws GenieException {
-        final Set<String> tags
-                = this.service.getTagsForJob(JOB_1_ID);
-        Assert.assertEquals(3, tags.size());
-        Assert.assertEquals(3,
-                this.service.removeTagForJob(
-                        JOB_1_ID, null).size());
+    @Test(expected = ConstraintViolationException.class)
+    public void testRemoveTagForJobNullTag() throws GenieException {
+        this.service.removeTagForJob(JOB_1_ID, null);
     }
 
     /**
@@ -780,7 +849,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      *
      * @throws GenieException
      */
-    @Test(expected = GeniePreconditionException.class)
+    @Test(expected = ConstraintViolationException.class)
     public void testRemoveTagForJobNoId() throws GenieException {
         this.service.removeTagForJob(null, "something");
     }
@@ -828,7 +897,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      *
      * @throws GenieException
      */
-    @Test(expected = GeniePreconditionException.class)
+    @Test(expected = ConstraintViolationException.class)
     public void testSetUpdateTimeNoId() throws GenieException {
         this.service.setUpdateTime(null);
     }
@@ -862,7 +931,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      *
      * @throws GenieException
      */
-    @Test(expected = GeniePreconditionException.class)
+    @Test(expected = ConstraintViolationException.class)
     public void testSetJobStatusNoId() throws GenieException {
         this.service.setJobStatus(null, null, null);
     }
@@ -872,7 +941,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      *
      * @throws GenieException
      */
-    @Test(expected = GeniePreconditionException.class)
+    @Test(expected = ConstraintViolationException.class)
     public void testSetJobStatusNoStatus() throws GenieException {
         this.service.setJobStatus(JOB_1_ID, null, null);
     }
@@ -926,7 +995,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      *
      * @throws GenieException
      */
-    @Test(expected = GeniePreconditionException.class)
+    @Test(expected = ConstraintViolationException.class)
     public void testSetProcessIdForJobNoId() throws GenieException {
         this.service.setProcessIdForJob(null, 810);
     }
@@ -961,7 +1030,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      *
      * @throws GenieException
      */
-    @Test(expected = GeniePreconditionException.class)
+    @Test(expected = ConstraintViolationException.class)
     public void testSetCommandInfoForJobNoId() throws GenieException {
         this.service.setCommandInfoForJob(null, null, null);
     }
@@ -973,7 +1042,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      */
     @Test(expected = GenieNotFoundException.class)
     public void testSetCommandInfoForJobNoJob() throws GenieException {
-        this.service.setCommandInfoForJob(UUID.randomUUID().toString(), null, null);
+        this.service.setCommandInfoForJob(UUID.randomUUID().toString(), "cmdId", "cmdName");
     }
 
     /**
@@ -996,7 +1065,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      *
      * @throws GenieException
      */
-    @Test(expected = GeniePreconditionException.class)
+    @Test(expected = ConstraintViolationException.class)
     public void testSetApplicationInfoForJobNoId() throws GenieException {
         this.service.setApplicationInfoForJob(null, null, null);
     }
@@ -1008,7 +1077,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      */
     @Test(expected = GenieNotFoundException.class)
     public void testSetApplicationInfoForJobNoJob() throws GenieException {
-        this.service.setApplicationInfoForJob(UUID.randomUUID().toString(), null, null);
+        this.service.setApplicationInfoForJob(UUID.randomUUID().toString(), "appId", "appName");
     }
 
     /**
@@ -1031,7 +1100,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      *
      * @throws GenieException
      */
-    @Test(expected = GeniePreconditionException.class)
+    @Test(expected = ConstraintViolationException.class)
     public void testSetClusterInfoForJobNoId() throws GenieException {
         this.service.setClusterInfoForJob(null, null, null);
     }
@@ -1043,7 +1112,7 @@ public class TestJobServiceJPAImpl extends DBUnitTestBase {
      */
     @Test(expected = GenieNotFoundException.class)
     public void testSetClusterInfoForJobNoJob() throws GenieException {
-        this.service.setClusterInfoForJob(UUID.randomUUID().toString(), null, null);
+        this.service.setClusterInfoForJob(UUID.randomUUID().toString(), "clusterId", "clusterName");
     }
 
     /**

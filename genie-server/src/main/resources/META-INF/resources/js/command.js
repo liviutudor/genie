@@ -25,6 +25,11 @@ define([
         self.jobType = ko.observable();
         self.configs = ko.observableArray();
         self.tags = ko.observableArray();
+        self.clusters = ko.observableArray();
+        self.application = ko.observable();
+        self.createTimeFormatted = ko.observable();
+        self.updateTimeFormatted = ko.observable();
+        self.formattedTags = ko.observable();
 
         ko.mapping.fromJS(json, {}, self);
         self.originalStatus = self.status();
@@ -36,6 +41,20 @@ define([
             }
             return self.id();
         }, self);
+
+        self.applicationId = ko.computed(function() {
+            if (self.application() !== undefined) {
+                return self.application().id;
+            }
+            return '';
+        },self);
+
+        self.applicationName = ko.computed(function() {
+            if (self.application() !== undefined) {
+                return self.application().name;
+            }
+            return '';
+        },self);
 
         self.statusClass = ko.computed(function() {
             if (self.status() && self.status().toUpperCase() === 'ACTIVE') {
@@ -71,6 +90,7 @@ define([
         self.runningCommands = ko.observableArray();
         self.allTags = ko.observableArray();
         self.selectedTags = ko.observableArray();
+        self.displayForm = ko.observable(true);
 
         self.commandOrderByFields = ko.observableArray(['user','started','created','id','name','status']);
         self.commandOrderBySelectedFields = ko.observableArray();
@@ -115,6 +135,14 @@ define([
             });
         };
 
+        self.showForm = function() {
+            self.displayForm(true);
+        }
+
+        self.hideForm = function() {
+            self.displayForm(false);
+        }
+
         self.search = function() {
             var d = new Date();
             self.searchResults([]);
@@ -143,18 +171,19 @@ define([
             }).done(function(data) {
             	self.searchResults([]);
                 self.status('results');
+                self.displayForm(false);
                 if (data instanceof Array) {
                     _.each(data, function(commandObj, index) {
 
                         commandObj.idLink  = $("<div />").append($("<a />", {
                             href : '/#command/details/'+commandObj.id,
                             target: "_blank"
-                        }).append($("<img/>", {src: '../images/genie.gif', class: 'genie-icon'}))).html();
+                        }).append($("<img/>", {src: '../images/folder.svg', class: 'open-icon'}))).html();
 
                         commandObj.rawLink  = $("<div />").append($("<a />", {
                             href : "genie/v2/config/commands/" + commandObj.id,
                             target: "_blank"
-                        }).append($("<img/>", {src: '../images/json_logo.png', class: 'json-icon'}))).html();
+                        }).append($("<img/>", {src: '../images/genie.gif', class: 'genie-icon'}))).html();
 
                         var createdDt = new Date(commandObj.created);
                         commandObj.createTimeFormatted = moment(createdDt).format('MM/DD/YYYY HH:mm:ss');
@@ -214,9 +243,38 @@ define([
                     type: 'GET',
                     headers: {'Accept':'application/json'},
                     url:  'genie/v2/config/commands/'+commandId
-                }).done(function(data) {
-                	console.log(data);
-                    self.current(new Command(data));
+                }).done(function(commandObj) {
+                	//console.log(command);
+
+                    var createdDt = new Date(commandObj.created);
+                    commandObj.createTimeFormatted = moment(createdDt).format('MM/DD/YYYY HH:mm:ss');
+
+                    var updatedDt = new Date(commandObj.updated);
+                    commandObj.updateTimeFormatted = moment(updatedDt).format('MM/DD/YYYY HH:mm:ss');
+
+                    commandObj.formattedTags = commandObj.tags.join("<br />");
+
+                    self.current(new Command(commandObj));
+                    $.ajax({
+                        type: 'GET',
+                        headers: {'Accept':'application/json'},
+                        url:  'genie/v2/config/commands/'+commandId+'/clusters?status=UP'
+                    }).done(function(clusters) {
+                        self.current().clusters(clusters);
+                    });
+
+                    $.ajax({
+                        type: 'GET',
+                        headers: {'Accept':'application/json'},
+                        url:  'genie/v2/config/commands/'+commandId+'/application'
+                    }).done(function(application) {
+                        console.log("Application: " + application);
+                        self.current().application(application);
+                    }).fail(function(jqXHR, textStatus, errorThrown) {
+                        console.log(jqXHR, textStatus, errorThrown);
+                        var application = {id:"None", name:"None"};
+                        self.current().application(application);
+                    });
                 });
             } else {
                 self.current(new Command());

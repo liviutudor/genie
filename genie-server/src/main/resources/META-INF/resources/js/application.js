@@ -25,6 +25,10 @@ define([
         self.configs = ko.observableArray();
         self.jars = ko.observableArray();
         self.tags = ko.observableArray();
+        self.commands = ko.observableArray();
+        self.createTimeFormatted = ko.observable();
+        self.updateTimeFormatted = ko.observable();
+        self.formattedTags = ko.observable();
 
         ko.mapping.fromJS(json, {}, self);
         self.originalStatus = self.status();
@@ -71,6 +75,7 @@ define([
         self.runningApplications = ko.observableArray();
         self.allTags = ko.observableArray();
         self.selectedTags = ko.observableArray();
+        self.displayForm = ko.observable(true);
 
         self.applicationOrderByFields = ko.observableArray(['user','started','created','id','name','status']);
         self.applicationOrderBySelectedFields = ko.observableArray();
@@ -115,6 +120,14 @@ define([
             });
         };
 
+        self.showForm = function() {
+            self.displayForm(true);
+        }
+
+        self.hideForm = function() {
+            self.displayForm(false);
+        }
+
         self.search = function() {
             var d = new Date();
             self.searchResults([]);
@@ -143,18 +156,20 @@ define([
             }).done(function(data) {
             	self.searchResults([]);
                 self.status('results');
+                self.displayForm(false);
+
                 if (data instanceof Array) {
                     _.each(data, function(applicationObj, index) {
 
                         applicationObj.idLink  = $("<div />").append($("<a />", {
                             href : '/#application/details/'+applicationObj.id,
                             target: "_blank"
-                        }).append($("<img/>", {src: '../images/genie.gif', class: 'genie-icon'}))).html();
+                        }).append($("<img/>", {src: '../images/folder.svg', class: 'open-icon'}))).html();
 
                         applicationObj.rawLink  = $("<div />").append($("<a />", {
                             href : "genie/v2/config/applications/" + applicationObj.id,
                             target: "_blank"
-                        }).append($("<img/>", {src: '../images/json_logo.png', class: 'json-icon'}))).html();
+                        }).append($("<img/>", {src: '../images/genie.gif', class: 'genie-icon'}))).html();
 
                         var createdDt = new Date(applicationObj.created);
                         applicationObj.createTimeFormatted = moment(createdDt).format('MM/DD/YYYY HH:mm:ss');
@@ -214,9 +229,27 @@ define([
                     type: 'GET',
                     headers: {'Accept':'application/json'},
                     url:  'genie/v2/config/applications/'+applicationId
-                }).done(function(data) {
-                	console.log(data);
-                    self.current(new Application(data));
+                }).done(function(applicationObj) {
+                	console.log(applicationObj);
+
+                    var createdDt = new Date(applicationObj.created);
+                    applicationObj.createTimeFormatted = moment(createdDt).format('MM/DD/YYYY HH:mm:ss');
+
+                    var updatedDt = new Date(applicationObj.updated);
+                    applicationObj.updateTimeFormatted = moment(updatedDt).format('MM/DD/YYYY HH:mm:ss');
+
+                    applicationObj.formattedTags = applicationObj.tags.join("<br />");
+
+                    self.current(new Application(applicationObj));
+
+                    $.ajax({
+                        type: 'GET',
+                        headers: {'Accept':'application/json'},
+                        url:  'genie/v2/config/applications/'+applicationId+'/commands?status=ACTIVE'
+                    }).done(function(commands) {
+                        console.log(commands);
+                        self.current().commands(commands);
+                    });
                 });
             } else {
                 self.current(new Application());

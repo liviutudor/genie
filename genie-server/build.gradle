@@ -1,7 +1,3 @@
-plugins {
-    id 'nebula.provided-base' version '2.2.0'
-}
-
 license {
     excludes (["META-INF/resources/*"])
 }
@@ -82,4 +78,7 @@ dependencies {
     testCompile ("org.springframework:spring-test:${spring_framework_version}")
     testCompile ("org.dbunit:dbunit:${dbunit_version}")
     testCompile ("com.github.springtestdbunit:spring-test-dbunit:${spring_test_dbunit_version}")
+
+    testRuntime ("javax.el:javax.el-api:${expression_language_version}")
+    testRuntime ("org.glassfish.web:javax.el:${expression_language_version}")
 }

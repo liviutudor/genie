@@ -82,6 +82,7 @@ define([
         }, self);
         self.jobOrderByFields = ko.observableArray(['user','started','created','id','name','status','executionClusterName','executionClusterId']);
         self.jobOrderBySelectedFields = ko.observableArray();
+        self.displayForm = ko.observable(true);
 
         self.startup = function() {
             self.runningJobs([]);
@@ -109,6 +110,14 @@ define([
             });
         };
 
+        self.showForm = function() {
+            self.displayForm(true);
+        }
+
+        self.hideForm = function() {
+            self.displayForm(false);
+        }
+
         self.search = function() {
             var d = new Date();
             self.searchResults([]);
@@ -122,6 +131,8 @@ define([
             var jobTags = _.where(formArray, {'name': 'jobTags'})[0].value;
             var executionClusterName  = _.where(formArray, {'name': 'clusterName'})[0].value;
             var executionClusterId  = _.where(formArray, {'name': 'clusterId'})[0].value;
+            var commandName  = _.where(formArray, {'name': 'commandName'})[0].value;
+            var commandId  = _.where(formArray, {'name': 'commandId'})[0].value;
             var limit    = _.where(formArray, {'name': 'limit'})[0].value;
             var sortOrder = _.where(formArray, {'name': 'sortOrder'})[0].value;
             var bDescending =  true;
@@ -137,11 +148,22 @@ define([
                 headers: {'Accept':'application/json'},
                 url:  'genie/v2/jobs',
                 traditional: true,
-                data: {limit: limit, userName: user, status: status, 
-                    id: id, name: name, executionClusterName:executionClusterName, executionClusterId:executionClusterId, tag: jobTagsArray, orderBy: self.jobOrderBySelectedFields(), descending: bDescending }
+                data: {limit: limit,
+                        userName: user,
+                        status: status,
+                        id: id,
+                        name: name,
+                        executionClusterName:executionClusterName,
+                        executionClusterId:executionClusterId,
+                        commandName:commandName,
+                        commandId:commandId,
+                        tag: jobTagsArray,
+                        orderBy: self.jobOrderBySelectedFields(),
+                        descending: bDescending }
             }).done(function(data) {
                 self.searchResults([]);
                 self.status('results');
+                self.displayForm(false);
                 // check to see if jobInfo is an array
                 if (data instanceof Array) {
                     _.each(data, function(jobObj, index) {
@@ -152,12 +174,12 @@ define([
                         jobObj.idLink  = $("<div />").append($("<a />", {
                             href : jobObj.outputURI,
                             target: "_blank"
-                        }).append($("<img/>", {src: '../images/genie.gif', class: 'genie-icon'}))).html();
+                        }).append($("<img/>", {src: '../images/folder.svg', class: 'open-icon'}))).html();
 
                         jobObj.rawLink  = $("<div />").append($("<a />", {
                             href : "genie/v2/jobs/" + jobObj.id,
                             target: "_blank"
-                        }).append($("<img/>", {src: '../images/json_logo.png', class: 'json-icon'}))).html();
+                        }).append($("<img/>", {src: '../images/genie.gif', class: 'genie-icon'}))).html();
 
                         var startDt = new Date(jobObj.created);
                         jobObj.startTimeFormatted = moment(startDt).format('MM/DD/YYYY HH:mm:ss');
@@ -167,7 +189,8 @@ define([
                         // TODO checking against PST Epoch time. This should be changed once we fix the server side.
                         if (jobObj.status != 'RUNNING') {
                             jobObj.endTimeFormatted = moment (endDt).format('MM/DD/YYYY HH:mm:ss');
-                            jobObj.diffTimeFormatted = moment.duration(moment(endDt).diff(moment(startDt))).format("d[d] hh:mm:ss");
+                            //jobObj.diffTimeFormatted = moment.duration(moment(endDt).diff(moment(startDt))).format("d[d] hh:mm:ss", {trim: false});
+                            jobObj.diffTimeFormatted = moment.duration(moment(endDt).diff(moment(startDt))).format("d[d] hh[h] mm[m] ss[s]", {trim:false});
                         } else {
                             jobObj.endTimeFormatted = '';
                             jobObj.diffTimeFormatted ='';
@@ -197,8 +220,8 @@ define([
                             { title: 'User', data: 'user', className: "dt-center"},
                             { title: 'Cluster', data: 'executionClusterName', className: "dt-center"},
                             { title: 'Start Time (UTC)', data: 'startTimeFormatted', className: "dt-center"},
-                            { title: 'Finish Time', data: 'endTimeFormatted', className: "dt-center"},
-                            { title: 'RunTime', data: 'diffTimeFormatted', className: "dt-center"},
+                            { title: 'Finish Time (UTC)', data: 'endTimeFormatted', className: "dt-center"},
+                            { title: 'RunTime', data: 'diffTimeFormatted', className: "dt-body-right"},
                             { title: 'Output', data: 'idLink', className: "dt-center"},
                             { title: 'JSON', data: 'rawLink', className: "dt-center"},
                             { title: 'Status', name: 'status', data: 'status', className: "dt-center"},

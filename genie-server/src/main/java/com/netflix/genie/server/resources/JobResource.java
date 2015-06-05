@@ -63,6 +63,7 @@ import org.slf4j.LoggerFactory;
  * @author amsharma
  * @author tgianos
  */
+@Named
 @Path("/v2/jobs")
 @Api(
         value = "/v2/jobs",
@@ -70,8 +71,7 @@ import org.slf4j.LoggerFactory;
         description = "Manage Genie Jobs."
 )
 @Produces(MediaType.APPLICATION_JSON)
-@Named
-public class JobResource {
+public final class JobResource {
 
     private static final Logger LOG = LoggerFactory.getLogger(JobResource.class);
     private static final String FORWARDED_FOR_HEADER = "X-Forwarded-For";
@@ -102,7 +102,7 @@ public class JobResource {
      * Constructor.
      *
      * @param executionService The execution service to use.
-     * @param jobService The job service to use.
+     * @param jobService       The job service to use.
      */
     @Inject
     public JobResource(final ExecutionService executionService, final JobService jobService) {
@@ -283,6 +283,8 @@ public class JobResource {
      * @param tags        tags for the job
      * @param clusterName the name of the cluster
      * @param clusterId   the id of the cluster
+     * @param commandName the name of the command run by the job
+     * @param commandId   the id of the command run by the job
      * @param page        page number for job
      * @param limit       max number of jobs to return
      * @return successful response, or one with HTTP error code
@@ -353,6 +355,16 @@ public class JobResource {
             @ApiParam(
                     value = "The page to start on."
             )
+            @QueryParam("commandName")
+            final String commandName,
+            @ApiParam(
+                    value = "Id of the cluster on which the job ran."
+            )
+            @QueryParam("commandId")
+            final String commandId,
+            @ApiParam(
+                    value = "The page to start on."
+            )
             @QueryParam("page")
             @DefaultValue("0")
             int page,
@@ -379,26 +391,30 @@ public class JobResource {
                         + "| executionClusterId | page | limit | descending | orderBys]"
         );
         LOG.info(id
-                + " | "
-                + name
-                + " | "
-                + userName
-                + " | "
-                + statuses
-                + " | "
-                + tags
-                + " | "
-                + clusterName
-                + " | "
-                + clusterId
-                + " | "
-                + page
-                + " | "
-                + limit
-                + " | "
-                + descending
-                + " | "
-                + orderBys
+                        + " | "
+                        + name
+                        + " | "
+                        + userName
+                        + " | "
+                        + statuses
+                        + " | "
+                        + tags
+                        + " | "
+                        + clusterName
+                        + " | "
+                        + clusterId
+                        + " | "
+                        + commandName
+                        + " | "
+                        + commandId
+                        + " | "
+                        + page
+                        + " | "
+                        + limit
+                        + " | "
+                        + descending
+                        + " | "
+                        + orderBys
         );
         Set<JobStatus> enumStatuses = null;
         if (!statuses.isEmpty()) {
@@ -418,6 +434,8 @@ public class JobResource {
                 tags,
                 clusterName,
                 clusterId,
+                commandName,
+                commandId,
                 page,
                 limit,
                 descending,
